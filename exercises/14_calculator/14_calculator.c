@@ -3,7 +3,6 @@
 // TODO：定义四则运算规则
 // hint：似乎除数有一些特殊情况，需要处理
 
-// I AM NOT DONE
 int add(int a, int b) { return a + b; }
 int subtract(int a, int b) { return a - b; }
 int multiply(int a, int b) { return a * b; }
@@ -20,7 +19,6 @@ int main() {
     int a, b;
     char op;
 
-    // TODO
     // hint:这是一个函数指针数组，在这之前应该先定义指针
     int (*operations[4])(int, int) = {add, subtract, multiply, divide};
 
