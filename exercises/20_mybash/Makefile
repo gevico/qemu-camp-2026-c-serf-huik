@@ -20,17 +20,18 @@ all: mybash
 
 # 通用规则：构建每个子模块（静态库）
 $(SUBDIRS):
-    # TODO: 在这里添加你的代码
-    # I AM NOT DONE
+	$(MAKE) -C src/$@ all OBJDIR=$(PWD)/obj/src/$@ BINDIR=$(PWD)/bin
 
 # 构建 mybash（可执行文件，依赖上面的库）
 mybash: $(SUBDIRS)
-	# TODO: 在这里添加你的代码
-    # I AM NOT DONE
+	$(MAKE) -C src/mybash all OBJDIR=$(PWD)/obj/src/mybash BINDIR=$(PWD)/bin
 
 # 清理所有生成的文件
 clean:
-    # TODO: 在这里添加你的代码
-    # I AM NOT DONE
+	$(MAKE) -C src/mybash clean OBJDIR=$(PWD)/obj/src/mybash BINDIR=$(PWD)/bin
+	$(MAKE) -C src/mysed clean OBJDIR=$(PWD)/obj/src/mysed BINDIR=$(PWD)/bin
+	$(MAKE) -C src/myfile clean OBJDIR=$(PWD)/obj/src/myfile BINDIR=$(PWD)/bin
+	$(MAKE) -C src/mywc clean OBJDIR=$(PWD)/obj/src/mywc BINDIR=$(PWD)/bin
+	$(MAKE) -C src/mytrans clean OBJDIR=$(PWD)/obj/src/mytrans BINDIR=$(PWD)/bin
 
 .PHONY: all $(SUBDIRS) mybash clean

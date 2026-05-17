@@ -40,8 +40,62 @@ void processFile(const char *filename) {
     printf("=== 处理数据来自: %s ===\n", filename);
 
     switch (choice) {
-        // TODO: 在这里添加你的代码
-        // I AM NOT DONE
+        case 1: {
+            int arr[20];
+            for (int i = 0; i < n; i++) {
+                if (fscanf(fin, "%d", &arr[i]) != 1) {
+                    printf("错误: 文件 %s 格式不正确\n", filename);
+                    fclose(fin);
+                    return;
+                }
+            }
+            sort(arr, n, sizeof(int), compareInt);
+            printf("排序结果 (整数): ");
+            for (int i = 0; i < n; i++) {
+                printf("%d ", arr[i]);
+            }
+            printf("\n");
+            break;
+        }
+        case 2: {
+            float arr[20];
+            for (int i = 0; i < n; i++) {
+                if (fscanf(fin, "%f", &arr[i]) != 1) {
+                    printf("错误: 文件 %s 格式不正确\n", filename);
+                    fclose(fin);
+                    return;
+                }
+            }
+            sort(arr, n, sizeof(float), compareFloat);
+            printf("排序结果 (浮点数): ");
+            for (int i = 0; i < n; i++) {
+                printf("%.2f ", arr[i]);
+            }
+            printf("\n");
+            break;
+        }
+        case 3: {
+            char *arr[20];
+            for (int i = 0; i < n; i++) {
+                char buffer[100];
+                if (fscanf(fin, "%s", buffer) != 1) {
+                    printf("错误: 文件 %s 格式不正确\n", filename);
+                    fclose(fin);
+                    return;
+                }
+                arr[i] = strdup(buffer); // 动态分配字符串
+            }
+            sort(arr, n, sizeof(char*), compareString);
+            printf("排序结果 (字符串): ");
+            for (int i = 0; i < n; i++) {
+                printf("%s ", arr[i]);
+                free(arr[i]); // 释放动态分配的内存
+            }
+            printf("\n");
+            break;
+        }
+        default:
+            printf("错误: 文件 %s 中的选择项无效\n", filename);
     }
 
     fclose(fin);

@@ -9,15 +9,44 @@ int parse_replace_command(const char* cmd, char** old_str, char** new_str) {
         return -1;
     }
 
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    const char* first_slash = strchr(cmd, '/');
+    if (!first_slash) {
+        return -1;
+    }
+
+    const char* second_slash = strchr(first_slash + 1, '/');
+    if (!second_slash) {
+        return -1;
+    }
+
+    // Extract the old string
+    *old_str = strndup(first_slash + 1, second_slash - first_slash - 1);
+    if (!*old_str) {
+        return -1;
+    }
+
+    // Extract the new string
+    *new_str = strdup(second_slash + 1);
+    if (!*new_str) {
+        free(*old_str);
+        return -1;
+    }
 
     return 0;
 }
 
 void replace_first_occurrence(char* str, const char* old, const char* new) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    char* pos = strstr(str, old);
+    if (pos) {
+        size_t old_len = strlen(old);
+        size_t new_len = strlen(new);
+        size_t tail_len = strlen(pos + old_len);
+
+        // Shift the tail of the string to make room for the new string
+        memmove(pos + new_len, pos + old_len, tail_len + 1); // +1 for null terminator
+        // Copy the new string into place
+        memcpy(pos, new, new_len);
+    }
 }
 
 int main(int argc, char* argv[]) {
