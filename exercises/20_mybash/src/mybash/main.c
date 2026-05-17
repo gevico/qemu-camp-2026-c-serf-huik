@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,42 +72,34 @@ int is_builtin_command(char **args) {
 int parse_input(char *input, char **args) {
     int i = 0;
     int in_quotes = 0;
-    char *buf = input;
-    char *arg_start = NULL;
     char arg_buf[MAX_INPUT];  // 临时存储当前正在解析的参数
     int arg_buf_idx = 0;
 
     memset(arg_buf, 0, sizeof(arg_buf));
 
-    while (*buf != '\0' && i < MAX_ARGS - 1) {
-        char c = *buf;
+    for (char *p = input; *p != '\0' && i < MAX_ARGS - 1; ++p) {
+        char c = *p;
 
         if (c == '"') {
-            in_quotes = !in_quotes;  // 切换引号状态
-            if (in_quotes) {
-                arg_start = buf + 1;  // 引号开始，参数从下一个字符开始
-            } else {
+            in_quotes = !in_quotes;
+            if (!in_quotes && arg_buf_idx > 0) {
                 arg_buf[arg_buf_idx] = '\0';
                 args[i++] = strdup(arg_buf);
                 arg_buf_idx = 0;
             }
-        } else if (isspace(c) && !in_quotes) {
-            if (arg_start) {
+        } else if (isspace((unsigned char)c) && !in_quotes) {
+            if (arg_buf_idx > 0) {
                 arg_buf[arg_buf_idx] = '\0';
                 args[i++] = strdup(arg_buf);
                 arg_buf_idx = 0;
-                arg_start = NULL;
             }
         } else {
-            if (arg_start) {
+            if (arg_buf_idx < (int)sizeof(arg_buf) - 1) {
                 arg_buf[arg_buf_idx++] = c;
             }
         }
-
-        buf++;
     }
 
-    // 处理最后一个参数（循环结束后可能还有未加入的）
     if (arg_buf_idx > 0) {
         arg_buf[arg_buf_idx] = '\0';
         args[i++] = strdup(arg_buf);
@@ -133,31 +126,24 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        printf("mybash: reading commands from file '%s'\n", filename);
-
         while (fgets(input, sizeof(input), file)) {
-            // 去掉末尾换行符
             input[strcspn(input, "\n")] = '\0';
 
             int argc_parsed = parse_input(input, args);
-
             if (argc_parsed == 0) {
-                continue;  // 空行
-            }
-
-            // 处理内置命令
-            if (is_builtin_command(args)) {
                 continue;
             }
 
-            // 处理自定义命令
+            if (is_builtin_command(args)) {
+                for (int j = 0; j < argc_parsed; j++) {
+                    free(args[j]);
+                }
+                continue;
+            }
+
             const char *cmd_name = args[0];
             const char *cmd_arg1 = (argc_parsed >= 2) ? args[1] : NULL;
             const char *cmd_arg2 = (argc_parsed >= 3) ? args[2] : NULL;
-
-            printf("cmd_name: %s\n", cmd_name);
-            printf("cmd_arg1: %s\n", cmd_arg1);
-            printf("cmd_arg2: %s\n", cmd_arg2);
 
             int found = 0;
             for (Command *cmd = commands; cmd->name != NULL; cmd++) {
@@ -176,6 +162,10 @@ int main(int argc, char *argv[]) {
 
             if (!found) {
                 fprintf(stderr, "mybash: command not found: %s\n", cmd_name);
+            }
+
+            for (int j = 0; j < argc_parsed; j++) {
+                free(args[j]);
             }
         }
 
@@ -205,7 +195,8 @@ int main(int argc, char *argv[]) {
             }
 
             const char *cmd_name = args[0];
-            const char *cmd_arg = (argc >= 2) ? args[1] : NULL;
+            const char *cmd_arg1 = (argc >= 2) ? args[1] : NULL;
+            const char *cmd_arg2 = (argc >= 3) ? args[2] : NULL;
 
             int found = 0;
             for (Command *cmd = commands; cmd->name != NULL; cmd++) {
@@ -214,9 +205,9 @@ int main(int argc, char *argv[]) {
                     if (cmd->is_arg_required == 0) {
                         cmd->func.func_0();
                     } else if (cmd->is_arg_required == 1) {
-                        cmd->func.func_1(cmd_arg);
+                        cmd->func.func_1(cmd_arg1);
                     } else if (cmd->is_arg_required == 2) {
-                        cmd->func.func_2(cmd_arg, cmd_arg);
+                        cmd->func.func_2(cmd_arg1, cmd_arg2);
                     }
                     break;
                 }
@@ -224,6 +215,10 @@ int main(int argc, char *argv[]) {
 
             if (!found) {
                 fprintf(stderr, "mybash: command not found: %s\n", cmd_name);
+            }
+
+            for (int j = 0; j < argc; j++) {
+                free(args[j]);
             }
         }
     }

@@ -9,7 +9,7 @@ TARGET := mybash
 BINDIR ?= ./bin
 # 中间文件目录（比如 ./obj/src/mybash/）
 OBJDIR ?= ./obj
-LINKLIBS ?= -L../../obj/mysed -L../../obj/mywc -L../../obj/mytrans -L../../obj/myfile
+LINKLIBS ?= -L../../obj/src/mysed -L../../obj/src/mywc -L../../obj/src/mytrans -L../../obj/src/myfile
 
 # 源文件
 SRCS := main.c
@@ -24,6 +24,10 @@ all: $(TARGET_PATH)
 $(TARGET_PATH): $(OBJS)
 	@mkdir -p $(BINDIR)
 	$(CC) $(CFLAGS) -o $@ $^ $(LINKLIBS) -lmysed -lmywc -lmytrans -lmyfile
+
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(OBJDIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
 	@rm -rf $(OBJDIR)/*.o $(TARGET_PATH)
