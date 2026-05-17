@@ -3,42 +3,33 @@
 void print_elf_type(uint16_t e_type) {
     const char *type_str;
     switch (e_type) {
-    case ET_NONE:
-      type_str = "Unknown (ET_NONE)";
-      break;
-    case ET_REL:
-      type_str = "Relocatable (ET_REL)";
-      break;
-    case ET_EXEC:
-      type_str = "Executable (ET_EXEC)";
-      break;
-    case ET_DYN:
-      type_str = "Shared Object/PIE (ET_DYN)";
-      break;
-    case ET_CORE:
-      type_str = "Core Dump (ET_CORE)";
-      break;
-    default:
-      if (e_type >= ET_LOOS && e_type <= ET_HIOS)
-        type_str = "OS-Specific";
-      else if (e_type >= ET_LOPROC && e_type <= ET_HIPROC)
-        type_str = "Processor-Specific";
-      else
-        type_str = "Invalid";
+        case ET_NONE:
+            type_str = "Unknown";
+            break;
+        case ET_REL:
+            type_str = "Relocatable";
+            break;
+        case ET_EXEC:
+            type_str = "Executable";
+            break;
+        case ET_DYN:
+            type_str = "Shared Object/PIE";
+            break;
+        case ET_CORE:
+            type_str = "Unknown";
+            break;
+        default:
+            type_str = "Unknown";
+            break;
     }
     printf("ELF Type: %s (0x%x)\n", type_str, e_type);
 }
 
 int __cmd_myfile(const char* filename) {
-    char filepath[256];
     int fd;
     Elf64_Ehdr ehdr;
 
-    strcpy(filepath, filename);
-    fflush(stdout);
-    printf("filepath: %s\n", filepath);
-
-    fd = open(filepath, O_RDONLY);
+    fd = open(filename, O_RDONLY);
     if (fd < 0) {
         perror("Failed to open file");
         return 1;
@@ -49,11 +40,13 @@ int __cmd_myfile(const char* filename) {
         close(fd);
         return 1;
     }
+
     if (memcmp(ehdr.e_ident, ELFMAG, SELFMAG) != 0) {
-        fprintf(stderr, "Not a valid ELF file: %s\n", filepath);
+        fprintf(stderr, "Not a valid ELF file: %s\n", filename);
         close(fd);
         return 1;
     }
+
     print_elf_type(ehdr.e_type);
     close(fd);
     return 0;

@@ -4,34 +4,46 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_LINE_LENGTH 1024
+
+static char* string_ndup(const char* s, size_t n) {
+    char* result = malloc(n + 1);
+    if (!result) {
+        return NULL;
+    }
+    memcpy(result, s, n);
+    result[n] = '\0';
+    return result;
+}
+
 int parse_replace_command(const char* cmd, char** old_str, char** new_str) {
-    // 检查输入参数有效性
-    if (!cmd || !old_str || !new_str) {
+    if (!cmd || cmd[0] != 's' || cmd[1] != '/') {
         return -1;
     }
 
-    // 初始化输出参数
-    *old_str = NULL;
-    *new_str = NULL;
+    const char* old_start = cmd + 2;
+    const char* old_end = strchr(old_start, '/');
+    if (!old_end) {
+        return -1;
+    }
 
-    // 解析命令格式，期望格式为 "s/old/new/"
-    if (cmd[0] != 's' || cmd[1] != '/') {
+    const char* new_start = old_end + 1;
+    const char* new_end = strchr(new_start, '/');
+    if (!new_end) {
         return -1;
     }
-    const char* first_slash = strchr(cmd, '/');
-    if (!first_slash) {
+
+    size_t old_len = old_end - old_start;
+    size_t new_len = new_end - new_start;
+
+    *old_str = string_ndup(old_start, old_len);
+    if (!*old_str) {
         return -1;
     }
-    const char* second_slash = strchr(first_slash + 1, '/');
-    if (!second_slash) {
-        return -1;
-    }
-    // 提取 old_str 和 new_str
-    *old_str = strndup(first_slash + 1, second_slash - first_slash - 1);
-    *new_str = strdup(second_slash + 1);
-    if (!*old_str || !*new_str) {
+
+    *new_str = string_ndup(new_start, new_len);
+    if (!*new_str) {
         free(*old_str);
-        free(*new_str);
         return -1;
     }
 
@@ -39,36 +51,26 @@ int parse_replace_command(const char* cmd, char** old_str, char** new_str) {
 }
 
 void replace_first_occurrence(char* str, const char* old, const char* new) {
-    // 检查输入参数有效性
-    if (!str || !old || !new) {
-        return;
-    }
-
     char* pos = strstr(str, old);
     if (pos) {
         size_t old_len = strlen(old);
         size_t new_len = strlen(new);
         size_t tail_len = strlen(pos + old_len);
-        // 将 new_str 复制到 pos 位置
+
         memmove(pos + new_len, pos + old_len, tail_len + 1);
         memcpy(pos, new, new_len);
     }
 }
 
 int __cmd_mysed(const char* rules, const char* str) {
-    // 检查输入参数有效性
     if (!rules || !str) {
         fprintf(stderr, "Error: NULL rules or str parameter\n");
         return 1;
     }
 
-    printf("rules: %s\n", rules);
-    printf("str: %s\n", str);
-
     char* old_str = NULL;
     char* new_str = NULL;
 
-    // 解析规则，例如 "s/old/new/"
     if (parse_replace_command(rules, &old_str, &new_str) != 0) {
         fprintf(stderr, "Invalid replace command format. Use 's/old/new/'\n");
         return 1;
@@ -82,7 +84,7 @@ int __cmd_mysed(const char* rules, const char* str) {
     }
 
     // 复制原始字符串，因为我们可能会修改它（避免修改输入参数）
-    char line[1024];
+    char line[MAX_LINE_LENGTH];
     strncpy(line, str, sizeof(line) - 1);
     line[sizeof(line) - 1] = '\0';  // 确保终止
 
